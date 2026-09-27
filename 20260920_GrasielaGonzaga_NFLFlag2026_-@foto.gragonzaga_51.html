@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FocusQuest</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:linear-gradient(160deg,#000,#24040c,#d90429);color:#fff}
+.container{max-width:430px;margin:auto;padding:20px}
+.card{background:rgba(255,255,255,.08);border-radius:22px;padding:18px;margin-bottom:18px;border:1px solid rgba(255,255,255,.1)}
+h1{text-align:center;font-size:34px}
+.subtitle{text-align:center;color:#ffd6df;margin-bottom:25px}
+button{width:100%;padding:14px;border:none;border-radius:14px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:10px}
+.google{background:#fff;color:#000}.apple{background:#000;color:#fff;border:1px solid #444}.red{background:#d90429;color:#fff}.green{background:#16a34a;color:#fff}.green:disabled{background:#555}
+.timer{font-size:48px;font-weight:bold;text-align:center;margin:20px 0}
+.bar{height:12px;background:#444;border-radius:20px;overflow:hidden;margin-top:10px}.fill{height:100%;width:0%;background:#fff;transition:.4s}
+select{width:100%;padding:12px;background:#111;color:#fff;border:none;border-radius:12px;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:15px}.day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border-radius:10px;font-size:12px}.done{background:#d90429}
+#app,#reward,.modal{display:none}#dragon{font-size:70px;text-align:center;margin:15px 0}
+footer{text-align:center;font-size:12px;color:#ddd;margin-top:30px;padding-top:20px;border-top:1px solid rgba(255,255,255,.1)}
+.modal{position:fixed;inset:0;background:#000000cc;justify-content:center;align-items:center;padding:20px}
+.modal-box{background:#fff;color:#000;padding:20px;border-radius:20px;width:100%;max-width:340px}.pixkey{background:#eee;padding:12px;border-radius:10px;text-align:center;font-family:monospace;margin:15px 0;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="container">
+<div id="login">
+<h1>FocusQuest</h1>
+<p class="subtitle">Transforme sua rotina em uma aventura.</p>
+<div class="card">
+<h2 style="text-align:center;">Entrar</h2>
+<button class="google" onclick="login('Conta Google')">Google</button>
+<button class="apple" onclick="login('Apple ID')">Apple</button>
+<p style="text-align:center;font-size:12px;color:#ccc;margin-top:15px;">Login demonstrativo.</p>
+</div></div>
+<div id="app">
+<div class="card"><div style="display:flex;justify-content:space-between;"><div><small>Nível</small><h2 id="level">1</h2></div><div style="text-align:right;"><small>XP</small><h2 id="xp">0</h2></div></div><div class="bar"><div id="fill" class="fill"></div></div><p style="margin-top:8px;"><span id="progress">0</span>/100 XP</p><p id="user" style="color:#ffd6df;font-size:13px;margin-top:10px;"></p></div>
+<div class="card"><h2>🐉 Dragão Foco</h2><div id="dragon">🥚</div><p id="dragonText" style="text-align:center;">Seu dragão nascerá conforme você estudar.</p></div>
+<div class="card"><h2>Missão</h2><select id="mission"><option value="10|10">Beber água • 10 min</option><option value="15|15">Organizar mochila • 15 min</option><option value="20|25">Ler 20 páginas</option><option value="25|30">Estudar concentrado</option><option value="35|45">Treinar</option><option value="45|60">Projeto escolar</option><option value="60|80">Sessão profunda</option></select><div id="timer" class="timer">10:00</div><button id="start" class="red">Iniciar Missão</button><button id="finish" class="green" disabled>Concluir</button><div id="reward">+<span id="gain">0</span> XP</div></div>
+<div class="card"><h2>📅 Sequência</h2><p>Dias consecutivos: <strong id="streak">0</strong> 🔥</p><div id="calendar" class="grid"></div></div>
+<div class="card"><h2>Premium</h2><p style="margin:10px 0;">30+ missões, XP dobrado e muito mais.</p><button class="red" onclick="abrirPix()">Assinar por R$14,90</button><button class="apple">Apple Pay</button></div>
+<footer><strong>FocusQuest Studios • Protótipo</strong><p style="margin-top:8px;">Este app foi desenvolvido por uma adolescente e ainda está em fase de desenvolvimento.</p><p style="margin-top:6px;">Alguns erros podem acontecer. Obrigada por testar e apoiar este projeto. ❤️</p></footer>
+</div></div>
+<div id="pixModal" class="modal"><div class="modal-box"><h2 style="text-align:center;color:#d90429;">Pagamento via PIX</h2><p style="text-align:center;">R$14,90</p><div class="pixkey">41997317867</div><button class="red" onclick="copiarPix()">Copiar Chave</button><button onclick="fecharPix()" style="background:#ddd;color:#000;">Fechar</button></div></div>
+<script>
+let xp=0,level=1,streak=0,tempo=600,intervalo;
+const mission=document.getElementById("mission"),timer=document.getElementById("timer");
+function login(n){document.getElementById("login").style.display="none";document.getElementById("app").style.display="block";document.getElementById("user").innerText=n}
+mission.onchange=()=>{tempo=Number(mission.value.split("|")[0])*60;atualizarTimer()};
+function atualizarTimer(){let m=Math.floor(tempo/60),s=tempo%60;timer.innerText=`${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`}
+atualizarTimer();
+document.getElementById("start").onclick=()=>{document.getElementById("start").disabled=true;mission.disabled=true;intervalo=setInterval(()=>{tempo--;atualizarTimer();if(tempo<=0){clearInterval(intervalo);timer.innerText="Concluído!";document.getElementById("finish").disabled=false}},1000)};
+document.getElementById("finish").onclick=()=>{const ganho=Number(mission.value.split("|")[1]);xp+=ganho;level=Math.floor(xp/100)+1;streak++;document.getElementById("xp").innerText=xp;document.getElementById("level").innerText=level;document.getElementById("progress").innerText=xp%100;document.getElementById("fill").style.width=(xp%100)+"%";document.getElementById("gain").innerText=ganho;document.getElementById("reward").style.display="block";dragao();calendario();tempo=Number(mission.value.split("|")[0])*60;atualizarTimer();document.getElementById("start").disabled=false;mission.disabled=false;document.getElementById("finish").disabled=true};
+function dragao(){const d=document.getElementById("dragon"),t=document.getElementById("dragonText");if(xp<50){d.innerText="🥚";t.innerText="O ovo está prestes a chocar."}else if(xp<150){d.innerText="🐣";t.innerText="Seu dragão nasceu!"}else if(xp<300){d.innerText="🐉";t.innerText="Ele está ficando mais forte."}else{d.innerText="🔥🐉";t.innerText="Dragão Lendário desbloqueado!"}}
+function calendario(){const cal=document.getElementById("calendar");cal.innerHTML="";for(let i=1;i<=30;i++){let div=document.createElement("div");div.className="day";if(i<=streak){div.classList.add("done");div.innerText="🔥"}else div.innerText=i;cal.appendChild(div)}}
+calendario();
+function abrirPix(){document.getElementById("pixModal").style.display="flex"}
+function fecharPix(){document.getElementById("pixModal").style.display="none"}
+function copiarPix(){navigator.clipboard.writeText("41997317867").then(()=>alert("Chave PIX copiada!")).catch(()=>alert("PIX: 41997317867"))}
+</script>
+</body></html>
